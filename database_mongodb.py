@@ -23,7 +23,13 @@ def get_db():
     """Get MongoDB database connection"""
     global _client, _db
     if _client is None:
-        _client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
+        # Add TLS/SSL settings for MongoDB Atlas compatibility
+        connection_params = {
+            'serverSelectionTimeoutMS': 5000,
+            'tls': True,
+            'tlsAllowInvalidCertificates': False,
+        }
+        _client = MongoClient(MONGODB_URI, **connection_params)
         _db = _client[DB_NAME]
         init_db()
     return _db
