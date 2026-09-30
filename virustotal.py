@@ -48,9 +48,14 @@ VT_CACHE_TTL = 3600  # 1 hour
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "phishinghunter.db")
 _lock = threading.Lock()
 
+# Check if running in production (Render) or local
+IS_PRODUCTION = os.getenv("RENDER") is not None or not os.path.exists(os.path.dirname(DB_PATH))
+
 
 def _get_conn():
     """Get database connection (reuses existing database)."""
+    if IS_PRODUCTION:
+        return None  # Skip SQLite in production
     conn = sqlite3.connect(DB_PATH, timeout=10, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
@@ -58,26 +63,36 @@ def _get_conn():
 
 def _init_vt_tables():
     """Initialize VirusTotal-specific tables if they don't exist."""
-    with _lock, _get_conn() as conn:
-        conn.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS vt_rate_limit (
-                window_start INTEGER PRIMARY KEY,
-                count INTEGER NOT NULL
-            );
-            
-            CREATE TABLE IF NOT EXISTS vt_cache (
-                url_hash TEXT PRIMARY KEY,
-                result_json TEXT NOT NULL,
-                cached_at REAL NOT NULL
-            );
-            """
-        )
-        conn.commit()
+    if IS_PRODUCTION:
+        return  # Skip table creation in production
+    conn = _get_conn()
+    if conn:
+        try:
+            with _lock, conn:
+                conn.executescript(
+                    """
+                    CREATE TABLE IF NOT EXISTS vt_rate_limit (
+                        window_start INTEGER PRIMARY KEY,
+                        count INTEGER NOT NULL
+                    );
+                    
+                    CREATE TABLE IF NOT EXISTS vt_cache (
+                        url_hash TEXT PRIMARY KEY,
+                        result_json TEXT NOT NULL,
+                        cached_at REAL NOT NULL
+                    );
+                    """
+                )
+                conn.commit()
+        finally:
+            conn.close()
 
 
-# Initialize tables on import
-_init_vt_tables()
+# Initialize tables on import (only in local environment)
+try:
+    _init_vt_tables()
+except Exception as e:
+    logger.warning(f"Could not initialize VT tables: {e}")
 
 
 def _check_rate_limit():
@@ -85,44 +100,61 @@ def _check_rate_limit():
     Check if we're within VirusTotal's rate limit (4 req/min).
     Returns True if allowed, False if limit exceeded.
     """
+    if IS_PRODUCTION:
+        return True  # Skip rate limiting in production (use API key limits)
+    
     window_start = int(time.time() // VT_RATE_LIMIT_WINDOW) * VT_RATE_LIMIT_WINDOW
     
-    with _lock, _get_conn() as conn:
-        row = conn.execute(
-            "SELECT count FROM vt_rate_limit WHERE window_start = ?",
-            (window_start,),
-        ).fetchone()
-        
-        if row is None:
-            # New window, reset counter
+    conn = _get_conn()
+    if not conn:
+        return True
+    
+    try:
+        with _lock, conn:
+            row = conn.execute(
+                "SELECT count FROM vt_rate_limit WHERE window_start = ?",
+                (window_start,),
+            ).fetchone()
+            
+            if row is None:
+                # New window, reset counter
+                conn.execute(
+                    "DELETE FROM vt_rate_limit WHERE window_start < ?",
+                    (window_start - VT_RATE_LIMIT_WINDOW * 2,),  # cleanup old windows
+                )
+                conn.execute(
+                    "INSERT INTO vt_rate_limit (window_start, count) VALUES (?, 1)",
+                    (window_start,),
+                )
+                conn.commit()
+                return True
+            
+            if row["count"] >= VT_RATE_LIMIT_REQUESTS:
+                logger.debug("VirusTotal rate limit exceeded, skipping check")
+                return False
+            
             conn.execute(
-                "DELETE FROM vt_rate_limit WHERE window_start < ?",
-                (window_start - VT_RATE_LIMIT_WINDOW * 2,),  # cleanup old windows
-            )
-            conn.execute(
-                "INSERT INTO vt_rate_limit (window_start, count) VALUES (?, 1)",
+                "UPDATE vt_rate_limit SET count = count + 1 WHERE window_start = ?",
                 (window_start,),
             )
             conn.commit()
             return True
-        
-        if row["count"] >= VT_RATE_LIMIT_REQUESTS:
-            logger.debug("VirusTotal rate limit exceeded, skipping check")
-            return False
-        
-        conn.execute(
-            "UPDATE vt_rate_limit SET count = count + 1 WHERE window_start = ?",
-            (window_start,),
-        )
-        conn.commit()
-        return True
+    finally:
+        conn.close()
 
 
 def _get_cached_result(url):
     """Get cached VT result if available and not expired."""
+    if IS_PRODUCTION:
+        return None  # Skip caching in production
+    
     url_hash = hashlib.sha256(url.encode()).hexdigest()
     
-    with _get_conn() as conn:
+    conn = _get_conn()
+    if not conn:
+        return None
+    
+    try:
         row = conn.execute(
             "SELECT result_json, cached_at FROM vt_cache WHERE url_hash = ?",
             (url_hash,),
@@ -133,22 +165,34 @@ def _get_cached_result(url):
             return json.loads(row["result_json"])
         
         return None
+    finally:
+        conn.close()
 
 
 def _cache_result(url, result):
     """Cache VT result for 1 hour."""
+    if IS_PRODUCTION:
+        return  # Skip caching in production
+    
     url_hash = hashlib.sha256(url.encode()).hexdigest()
     import json
     
-    with _lock, _get_conn() as conn:
-        conn.execute(
-            """INSERT INTO vt_cache (url_hash, result_json, cached_at) 
-               VALUES (?, ?, ?)
-               ON CONFLICT(url_hash) 
-               DO UPDATE SET result_json=excluded.result_json, cached_at=excluded.cached_at""",
-            (url_hash, json.dumps(result), time.time()),
-        )
-        conn.commit()
+    conn = _get_conn()
+    if not conn:
+        return
+    
+    try:
+        with _lock, conn:
+            conn.execute(
+                """INSERT INTO vt_cache (url_hash, result_json, cached_at) 
+                   VALUES (?, ?, ?)
+                   ON CONFLICT(url_hash) 
+                   DO UPDATE SET result_json=excluded.result_json, cached_at=excluded.cached_at""",
+                (url_hash, json.dumps(result), time.time()),
+            )
+            conn.commit()
+    finally:
+        conn.close()
 
 
 def check_url(url: str) -> dict:
