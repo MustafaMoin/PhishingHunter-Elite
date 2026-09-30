@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhishingHunter Elite - Settings</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Courier New', Consolas, monospace;
+      background: #0a0e1a;
+      color: #00ff88;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #00ff8844;
+    }
+
+    .logo {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .logo-text {
+      color: #00ff88;
+    }
+
+    .logo-hunter {
+      color: #00d4ff;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #00ff8866;
+      letter-spacing: 2px;
+    }
+
+    .section {
+      background: linear-gradient(135deg, #0a0e1a, #1a1e2a);
+      border: 2px solid #00ff8844;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      color: #00ff88;
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      color: #00ff8888;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      background: #0a0e1a;
+      border: 2px solid #00ff8844;
+      border-radius: 4px;
+      color: #00d4ff;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #00ff88;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+    }
+
+    .form-hint {
+      font-size: 11px;
+      color: #00ff8866;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    .btn-save {
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #00ff88, #00d4ff);
+      color: #0a0e1a;
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .btn-save:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-test {
+      padding: 14px 32px;
+      background: transparent;
+      color: #00ff88;
+      border: 2px solid #00ff8844;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-left: 12px;
+      transition: all 0.2s;
+    }
+
+    .btn-test:hover {
+      border-color: #00ff88;
+      background: #00ff8811;
+    }
+
+    .status-message {
+      padding: 12px;
+      border-radius: 4px;
+      margin-top: 16px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .status-message.success {
+      background: #00ff8822;
+      border: 1px solid #00ff8844;
+      color: #00ff88;
+    }
+
+    .status-message.error {
+      background: #ff6b6b22;
+      border: 1px solid #ff6b6b44;
+      color: #ff6b6b;
+    }
+
+    .info-box {
+      background: #00d4ff11;
+      border: 1px solid #00d4ff33;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .info-title {
+      font-size: 13px;
+      color: #00d4ff;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .info-text {
+      font-size: 12px;
+      color: #00d4ff88;
+      line-height: 1.5;
+    }
+
+    .code {
+      background: #0a0e1a;
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: #00ff88;
+      font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <span class="logo-text">PHISHING</span><span class="logo-hunter">HUNTER</span>
+      </div>
+      <div class="subtitle">ELITE v2.0 - EXTENSION SETTINGS</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">API Configuration</div>
+      
+      <div class="info-box">
+        <div class="info-title">ℹ️ About API Endpoint</div>
+        <div class="info-text">
+          The extension needs to connect to a PhishingHunter API server. By default, it connects to
+          <span class="code">http://127.0.0.1:5000</span> (local server). You can change this to point to a remote server.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="apiEndpoint">API ENDPOINT URL</label>
+        <input 
+          type="text" 
+          id="apiEndpoint" 
+          class="form-input" 
+          placeholder="http://127.0.0.1:5000/api/check"
+        />
+        <div class="form-hint">
+          Enter the full API endpoint URL. Must include <span class="code">/api/check</span> path.
+        </div>
+      </div>
+
+      <div>
+        <button id="btnSave" class="btn-save">💾 Save Settings</button>
+        <button id="btnTest" class="btn-test">🔍 Test Connection</button>
+      </div>
+
+      <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Quick Start Guide</div>
+      
+      <div class="info-text" style="line-height: 1.8;">
+        <p style="margin-bottom: 12px;">
+          <strong style="color: #00ff88;">1. Start the PhishingHunter server:</strong><br>
+          Run <span class="code">python app.py</span> in your PhishingHunter directory
+        </p>
+        
+        <p style="margin-bottom: 12px;">
+          <strong style="color: #00ff88;">2. Verify the server is running:</strong><br>
+          Open <span class="code">http://127.0.0.1:5000</span> in your browser
+        </p>
+        
+        <p style="margin-bottom: 12px;">
+          <strong style="color: #00ff88;">3. Browse normally:</strong><br>
+          The extension will automatically scan pages and show risk scores in the badge
+        </p>
+        
+        <p>
+          <strong style="color: #00ff88;">4. Check results:</strong><br>
+          Click the extension icon to see detailed analysis, or right-click any link and select "Check this link with PhishingHunter"
+        </p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">About PhishingHunter Elite</div>
+      <div class="info-text" style="line-height: 1.8;">
+        PhishingHunter Elite is an advanced phishing detection system powered by:
+        <ul style="margin: 12px 0 0 20px; line-height: 2;">
+          <li>🤖 Machine Learning (trained on 40,000+ URLs)</li>
+          <li>👁️ Visual Similarity Detection (screenshot analysis)</li>
+          <li>🌐 Multi-source Threat Intelligence (Google, VirusTotal, blocklists)</li>
+          <li>🔍 25+ Structural & Behavioral Signals</li>
+          <li>📊 Explainable AI (every signal transparent)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

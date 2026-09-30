@@ -1,0 +1,89 @@
+# .dockerignore
+# -------------
+# Files to exclude from Docker build context
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+venv/
+env/
+ENV/
+
+# Database
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+data/*.db
+
+# Logs
+*.log
+logs/
+data/*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+
+# Documentation
+*.md
+ROADMAP*.md
+PHASE*.md
+PROGRESS*.md
+IMPLEMENTATION*.md
+
+# Tests
+tests/
+test_*.py
+*_test.py
+
+# ML models (copy separately if needed)
+ml/model.joblib
+ml/*.pkl
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+tmp/
+temp/
+*.tmp
+
+# Screenshots/icons (copy manually)
+screenshots/
+static/icons/*.png
+
+# Browser extension (separate deployment)
+extension/
+
+# SSL certificates (mount as volume)
+ssl/
+*.pem
+*.crt
+*.key

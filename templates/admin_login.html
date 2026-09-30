@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login | PHISHINGHUNTER ELITE</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{
+  --void:#05070a; --panel:#0a1018; --panel-2:#0d1622;
+  --grid-line:rgba(0,229,255,.05);
+  --green:#39ff8a; --cyan:#00d9ff; --amber:#ffb020; --red:#ff3860; --violet:#9b6bff;
+  --text:#d7ecf3; --text-dim:#5f7d8a;
+  --font-display:'Orbitron',sans-serif; --font-mono:'Share Tech Mono',monospace; --font-body:'Rajdhani',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--void); color:var(--text); font-family:var(--font-body);
+  min-height:100vh; overflow-x:hidden; position:relative;
+  display:flex; align-items:center; justify-content:center;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:42px 42px;
+  mask-image:radial-gradient(ellipse at 50% 50%, black 20%, transparent 75%);
+}
+
+.login-box{
+  position:relative; z-index:10; width:90%; max-width:480px;
+  background:linear-gradient(160deg, rgba(10,16,24,.95), rgba(13,22,34,.92));
+  border:1px solid rgba(0,217,255,.2); border-radius:8px; padding:50px 40px;
+  backdrop-filter:blur(14px); box-shadow:0 10px 50px rgba(0,0,0,.5);
+}
+.login-box::before,.login-box::after,.login-box .bl,.login-box .br{
+  content:''; position:absolute; width:16px; height:16px; border-color:var(--cyan); pointer-events:none;
+}
+.login-box::before{top:-1px; left:-1px; border-top:2px solid var(--cyan); border-left:2px solid var(--cyan);}
+.login-box::after{top:-1px; right:-1px; border-top:2px solid var(--cyan); border-right:2px solid var(--cyan);}
+.login-box .bl{bottom:-1px; left:-1px; border-bottom:2px solid var(--cyan); border-left:2px solid var(--cyan);}
+.login-box .br{bottom:-1px; right:-1px; border-bottom:2px solid var(--cyan); border-right:2px solid var(--cyan);}
+
+.logo{
+  font-family:var(--font-display); font-weight:900; font-size:1.8rem; color:var(--green);
+  text-shadow:0 0 20px rgba(57,255,138,.4); letter-spacing:2px; text-align:center; margin-bottom:8px;
+}
+.subtitle{
+  font-family:var(--font-mono); color:var(--violet); font-size:.8rem; letter-spacing:2px;
+  text-align:center; margin-bottom:40px; text-transform:uppercase;
+}
+
+.form-group{margin-bottom:24px;}
+.form-label{
+  font-family:var(--font-mono); font-size:.8rem; color:var(--text-dim); margin-bottom:8px;
+  display:block; letter-spacing:1px;
+}
+.form-input{
+  width:100%; padding:16px 18px; font-size:1rem; font-family:var(--font-mono);
+  background:rgba(0,0,0,.4); border:1px solid rgba(0,217,255,.25); border-radius:4px;
+  color:var(--green); outline:none; transition:.3s;
+}
+.form-input::placeholder{color:var(--text-dim);}
+.form-input:focus{border-color:var(--cyan); box-shadow:0 0 0 3px rgba(0,217,255,.12);}
+
+.login-btn{
+  width:100%; padding:18px; font-size:1rem; font-weight:700; font-family:var(--font-display);
+  background:linear-gradient(90deg,var(--green),var(--cyan)); color:#04120a; border:none;
+  border-radius:4px; cursor:pointer; letter-spacing:2px; text-transform:uppercase; transition:.3s;
+  margin-top:10px;
+}
+.login-btn:hover{transform:translateY(-2px); box-shadow:0 8px 30px rgba(57,255,138,.35);}
+
+.alert{
+  padding:12px 16px; border-radius:4px; margin-bottom:20px; font-family:var(--font-mono);
+  font-size:.85rem; border:1px solid;
+}
+.alert-error{background:rgba(255,56,96,.1); border-color:rgba(255,56,96,.4); color:var(--red);}
+.alert-success{background:rgba(57,255,138,.1); border-color:rgba(57,255,138,.4); color:var(--green);}
+
+.back-link{
+  text-align:center; margin-top:24px; font-family:var(--font-mono); font-size:.8rem;
+}
+.back-link a{color:var(--cyan); text-decoration:none; transition:.2s;}
+.back-link a:hover{color:var(--green);}
+
+.lock-icon{
+  font-size:3rem; color:var(--violet); text-align:center; margin-bottom:20px;
+  text-shadow:0 0 20px rgba(155,107,255,.5);
+}
+</style>
+</head>
+<body>
+<div class="login-box">
+  <span class="bl"></span><span class="br"></span>
+  
+  <div class="lock-icon"><i class="fas fa-shield-halved"></i></div>
+  <div class="logo">ADMIN ACCESS</div>
+  <div class="subtitle">PHISHINGHUNTER ELITE</div>
+  
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  
+  <form method="POST">
+    <div class="form-group">
+      <label class="form-label" for="username">USERNAME</label>
+      <input class="form-input" type="text" id="username" name="username" 
+             placeholder="admin" required autofocus>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label" for="password">PASSWORD</label>
+      <input class="form-input" type="password" id="password" name="password" 
+             placeholder="••••••••" required>
+    </div>
+    
+    <button class="login-btn" type="submit">
+      <i class="fas fa-sign-in-alt"></i> AUTHENTICATE
+    </button>
+  </form>
+  
+  <div class="back-link">
+    <a href="/"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+  </div>
+</div>
+</body>
+</html>

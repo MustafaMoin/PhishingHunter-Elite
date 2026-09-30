@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | PHISHINGHUNTER ELITE</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --void:#05070a; --panel:#0a1018; --panel-2:#0d1622;
+  --grid-line:rgba(0,229,255,.05);
+  --green:#39ff8a; --cyan:#00d9ff; --amber:#ffb020; --red:#ff3860; --violet:#9b6bff;
+  --orange:#ff8c42;
+  --text:#d7ecf3; --text-dim:#5f7d8a;
+  --font-display:'Orbitron',sans-serif; --font-mono:'Share Tech Mono',monospace; --font-body:'Rajdhani',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--void); color:var(--text); font-family:var(--font-body);
+  min-height:100vh; overflow-x:hidden; position:relative;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:42px 42px;
+  mask-image:radial-gradient(ellipse at 50% 20%, black 10%, transparent 75%);
+}
+
+.container{max-width:1600px; margin:auto; padding:24px; position:relative; z-index:10;}
+
+.hud{position:relative; background:linear-gradient(160deg, rgba(10,16,24,.92), rgba(13,22,34,.88));
+  border:1px solid rgba(0,217,255,.15); border-radius:6px; backdrop-filter:blur(14px);}
+.hud::before,.hud::after,.hud .bl,.hud .br{content:''; position:absolute; width:16px; height:16px; border-color:var(--cyan); pointer-events:none;}
+.hud::before{top:-1px; left:-1px; border-top:2px solid var(--cyan); border-left:2px solid var(--cyan);}
+.hud::after{top:-1px; right:-1px; border-top:2px solid var(--cyan); border-right:2px solid var(--cyan);}
+.hud .bl{bottom:-1px; left:-1px; border-bottom:2px solid var(--cyan); border-left:2px solid var(--cyan);}
+.hud .br{bottom:-1px; right:-1px; border-bottom:2px solid var(--cyan); border-right:2px solid var(--cyan);}
+
+.header{text-align:center; margin:40px 0 30px;}
+.logo{font-family:var(--font-display); font-weight:900; font-size:2.5rem; color:var(--violet);
+  text-shadow:0 0 24px rgba(155,107,255,.45); letter-spacing:2px;}
+.tagline{font-family:var(--font-mono); color:var(--text-dim); font-size:.9rem; margin-top:10px; letter-spacing:1px;}
+.nav-row{display:flex; gap:12px; justify-content:center; margin-top:20px; flex-wrap:wrap;}
+.nav-btn{font-family:var(--font-mono); font-size:.75rem; padding:8px 16px; border-radius:4px;
+  border:1px solid rgba(0,217,255,.25); background:transparent; color:var(--text);
+  text-decoration:none; display:inline-block; transition:.2s;}
+.nav-btn:hover{border-color:var(--cyan); color:var(--cyan);}
+.nav-btn.active{border-color:var(--violet); color:var(--violet);}
+
+.stats-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px; margin:30px 0;}
+.stat-card{padding:24px 20px; text-align:center;}
+.stat-icon{font-size:2rem; margin-bottom:10px; display:block;}
+.stat-number{font-family:var(--font-display); font-size:2.2rem; font-weight:900;}
+.stat-label{font-family:var(--font-mono); font-size:.72rem; letter-spacing:2px; color:var(--text-dim); text-transform:uppercase; margin-top:4px;}
+
+.section{padding:30px; margin:30px 0;}
+.section-title{font-family:var(--font-mono); color:var(--violet); font-size:.85rem; letter-spacing:2px;
+  margin-bottom:18px; text-transform:uppercase; display:flex; align-items:center; gap:10px;}
+.section-title i{font-size:1.1rem;}
+
+.trigger-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px;}
+.trigger-card{padding:24px; border:1px solid rgba(0,217,255,.15); border-radius:4px;
+  background:rgba(0,0,0,.2); transition:.3s;}
+.trigger-card:hover{border-color:var(--cyan);}
+.trigger-title{font-family:var(--font-display); font-size:1.1rem; color:var(--green); margin-bottom:8px;}
+.trigger-desc{font-family:var(--font-mono); font-size:.8rem; color:var(--text-dim); margin-bottom:16px; line-height:1.4;}
+.trigger-btn{font-family:var(--font-mono); font-size:.75rem; padding:10px 18px; border-radius:4px;
+  border:1px solid rgba(57,255,138,.4); background:transparent; color:var(--green); cursor:pointer;
+  transition:.2s; letter-spacing:1px;}
+.trigger-btn:hover{background:rgba(57,255,138,.1); box-shadow:0 0 20px rgba(57,255,138,.2);}
+.trigger-btn:disabled{opacity:.5; cursor:not-allowed;}
+
+.system-info{font-family:var(--font-mono); font-size:.85rem; line-height:1.8;}
+.info-row{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.05);}
+.info-label{color:var(--text-dim);}
+.info-value{color:var(--cyan); font-weight:600;}
+
+.signal-analysis{margin-top:20px;}
+.analysis-subtitle{font-family:var(--font-mono); font-size:.75rem; color:var(--amber); margin:12px 0 8px;
+  letter-spacing:1px;}
+.signal-item{display:flex; justify-content:space-between; padding:6px 10px; margin-bottom:4px;
+  background:rgba(255,255,255,.02); border-left:3px solid var(--red); border-radius:2px; font-size:.8rem;}
+.signal-item.fp{border-color:var(--amber);}
+.signal-item.fn{border-color:var(--red);}
+.signal-name{font-family:var(--font-mono); color:var(--text);}
+.signal-count{font-family:var(--font-mono); color:var(--text-dim); font-size:.75rem;}
+
+/* --- New section styles --- */
+.hud-table{width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:.8rem;}
+.hud-table th{text-align:left; padding:10px 12px; color:var(--cyan); font-weight:600; letter-spacing:1px;
+  border-bottom:1px solid rgba(0,217,255,.2); font-size:.72rem; text-transform:uppercase;}
+.hud-table td{padding:8px 12px; border-bottom:1px solid rgba(255,255,255,.04);}
+.hud-table tr:hover td{background:rgba(0,217,255,.04);}
+.hud-table input[type="number"]{
+  width:80px; background:rgba(0,0,0,.4); border:1px solid rgba(0,217,255,.2); border-radius:3px;
+  color:var(--text); font-family:var(--font-mono); font-size:.8rem; padding:4px 8px; text-align:right;}
+.hud-table input[type="number"]:focus{border-color:var(--cyan); outline:none; box-shadow:0 0 8px rgba(0,217,255,.2);}
+
+.hud-input{background:rgba(0,0,0,.4); border:1px solid rgba(0,217,255,.2); border-radius:4px;
+  color:var(--text); font-family:var(--font-mono); font-size:.8rem; padding:8px 14px; width:100%;}
+.hud-input:focus{border-color:var(--cyan); outline:none; box-shadow:0 0 10px rgba(0,217,255,.15);}
+.hud-input::placeholder{color:var(--text-dim);}
+
+.btn-cyan{font-family:var(--font-mono); font-size:.75rem; padding:8px 16px; border-radius:4px;
+  border:1px solid rgba(0,217,255,.4); background:transparent; color:var(--cyan); cursor:pointer;
+  transition:.2s; letter-spacing:1px;}
+.btn-cyan:hover{background:rgba(0,217,255,.1); box-shadow:0 0 16px rgba(0,217,255,.2);}
+.btn-red{font-family:var(--font-mono); font-size:.7rem; padding:5px 10px; border-radius:3px;
+  border:1px solid rgba(255,56,96,.4); background:transparent; color:var(--red); cursor:pointer; transition:.2s;}
+.btn-red:hover{background:rgba(255,56,96,.1);}
+.btn-amber{font-family:var(--font-mono); font-size:.7rem; padding:5px 10px; border-radius:3px;
+  border:1px solid rgba(255,176,32,.4); background:transparent; color:var(--amber); cursor:pointer; transition:.2s;}
+.btn-amber:hover{background:rgba(255,176,32,.1);}
+
+.btn-row{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+.add-row{display:flex; gap:10px; margin-bottom:16px; align-items:center;}
+.add-row .hud-input{max-width:400px;}
+
+.pagination{display:flex; gap:8px; margin-top:14px; justify-content:center; align-items:center;}
+.pagination button{font-family:var(--font-mono); font-size:.7rem; padding:5px 12px; border-radius:3px;
+  border:1px solid rgba(0,217,255,.2); background:transparent; color:var(--text-dim); cursor:pointer; transition:.2s;}
+.pagination button:hover{border-color:var(--cyan); color:var(--cyan);}
+.pagination button.active-page{border-color:var(--violet); color:var(--violet);}
+.pagination span{font-family:var(--font-mono); font-size:.7rem; color:var(--text-dim);}
+
+.risk-badge{font-family:var(--font-mono); font-size:.7rem; padding:3px 8px; border-radius:3px; display:inline-block; letter-spacing:1px;}
+.risk-SAFE{background:rgba(57,255,138,.1); color:var(--green); border:1px solid rgba(57,255,138,.3);}
+.risk-LOW{background:rgba(255,176,32,.1); color:var(--amber); border:1px solid rgba(255,176,32,.3);}
+.risk-HIGH{background:rgba(255,140,66,.1); color:var(--orange); border:1px solid rgba(255,140,66,.3);}
+.risk-PHISHING{background:rgba(255,56,96,.1); color:var(--red); border:1px solid rgba(255,56,96,.3);}
+
+.chart-wrap{position:relative; height:320px; margin-top:10px;}
+.table-scroll{max-height:500px; overflow-y:auto;}
+.table-scroll::-webkit-scrollbar{width:6px;}
+.table-scroll::-webkit-scrollbar-track{background:transparent;}
+.table-scroll::-webkit-scrollbar-thumb{background:rgba(0,217,255,.2); border-radius:3px;}
+
+.toast{position:fixed; bottom:24px; right:24px; z-index:999; font-family:var(--font-mono);
+  font-size:.8rem; padding:14px 20px; border-radius:4px; background:rgba(10,16,24,.95);
+  border:1px solid rgba(0,217,255,.3); color:var(--text); box-shadow:0 10px 30px rgba(0,0,0,.5);
+  animation:toastIn .3s ease; max-width:400px;}
+@keyframes toastIn{from{opacity:0; transform:translateY(10px);}to{opacity:1; transform:translateY(0);}}
+.toast.success{border-color:rgba(57,255,138,.5);}
+.toast.error{border-color:rgba(255,56,96,.5);}
+
+.empty-state{font-family:var(--font-mono); font-size:.8rem; color:var(--text-dim); padding:20px; text-align:center;}
+
+@media(max-width:768px){
+  .stats-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));}
+  .trigger-grid{grid-template-columns:1fr;}
+  .add-row{flex-direction:column;}
+  .add-row .hud-input{max-width:100%;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo"><i class="fas fa-shield-halved"></i> ADMIN CONSOLE</div>
+    <div class="tagline">PhishingHunter Elite Control Panel</div>
+    <div class="nav-row">
+      <a href="/admin" class="nav-btn active"><i class="fas fa-gauge"></i> Dashboard</a>
+      <a href="/admin/feedback" class="nav-btn"><i class="fas fa-comment-dots"></i> Feedback Analysis</a>
+      <a href="/" class="nav-btn"><i class="fas fa-globe"></i> Main Dashboard</a>
+      <a href="/admin/logout" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </div>
+
+  <!-- System Stats -->
+  <div class="stats-grid">
+    <div class="hud stat-card"><span class="bl"></span><span class="br"></span>
+      <i class="fas fa-magnifying-glass stat-icon" style="color:var(--cyan)"></i>
+      <div class="stat-number" style="color:var(--cyan)">{{ stats.hunts }}</div>
+      <div class="stat-label">Total Scans</div>
+    </div>
+    <div class="hud stat-card"><span class="bl"></span><span class="br"></span>
+      <i class="fas fa-skull-crossbones stat-icon" style="color:var(--red)"></i>
+      <div class="stat-number" style="color:var(--red)">{{ stats.threats }}</div>
+      <div class="stat-label">Threats Detected</div>
+    </div>
+    <div class="hud stat-card"><span class="bl"></span><span class="br"></span>
+      <i class="fas fa-comment-dots stat-icon" style="color:var(--violet)"></i>
+      <div class="stat-number" style="color:var(--violet)">{{ feedback_stats.get('false_positive', 0) + feedback_stats.get('false_negative', 0) + feedback_stats.get('confirmed', 0) }}</div>
+      <div class="stat-label">Feedback Submissions</div>
+    </div>
+    <div class="hud stat-card"><span class="bl"></span><span class="br"></span>
+      <i class="fas fa-database stat-icon" style="color:var(--green)"></i>
+      <div class="stat-number" style="color:var(--green)">{{ system_stats.db_size_mb }}</div>
+      <div class="stat-label">Database Size (MB)</div>
+    </div>
+  </div>
+
+  <!-- System Information -->
+  <div class="hud section">
+    <span class="bl"></span><span class="br"></span>
+    <div class="section-title"><i class="fas fa-server"></i> SYSTEM INFORMATION</div>
+    <div class="system-info">
+      <div class="info-row">
+        <span class="info-label">Cache Entries (Total)</span>
+        <span class="info-value">{{ system_stats.cache_total }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Cache Entries (Fresh, <10min)</span>
+        <span class="info-value">{{ system_stats.cache_fresh }}</span>
+      </div>
+      {% for source, count in system_stats.blocklist_by_source.items() %}
+      <div class="info-row">
+        <span class="info-label">Blocklist: {{ source }}</span>
+        <span class="info-value">{{ count }} URLs</span>
+      </div>
+      {% endfor %}
+      <div class="info-row">
+        <span class="info-label">Database Size</span>
+        <span class="info-value">{{ system_stats.db_size_mb }} MB</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- SECTION 1: SIGNAL WEIGHT EDITOR                                -->
+  <!-- ============================================================= -->
+  <div class="hud section">
+    <span class="bl"></span><span class="br"></span>
+    <div class="section-title"><i class="fas fa-sliders"></i> SIGNAL WEIGHT EDITOR</div>
+    <div class="btn-row" style="margin-bottom:16px;">
+      <button class="btn-cyan" onclick="saveWeights()"><i class="fas fa-save"></i> SAVE WEIGHTS</button>
+      <button class="btn-amber" onclick="resetWeights()"><i class="fas fa-rotate-left"></i> RESET TO DEFAULTS</button>
+    </div>
+    <div class="table-scroll">
+      <table class="hud-table" id="weightsTable">
+        <thead><tr><th>Signal Key</th><th>Default</th><th>Current Value</th></tr></thead>
+        <tbody>
+          {% for key, value in signal_weights.items()|sort %}
+          <tr>
+            <td>{{ key }}</td>
+            <td style="color:var(--text-dim)">{{ default_weights[key] }}</td>
+            <td><input type="number" step="1" data-key="{{ key }}" data-default="{{ default_weights[key] }}" value="{{ value }}"></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- SECTION 2: BLOCKLIST MANAGER                                   -->
+  <!-- ============================================================= -->
+  <div class="hud section">
+    <span class="bl"></span><span class="br"></span>
+    <div class="section-title"><i class="fas fa-ban"></i> BLOCKLIST MANAGER</div>
+    <div class="add-row">
+      <input type="text" class="hud-input" id="blocklistAddUrl" placeholder="Enter URL to add to blocklist...">
+      <button class="btn-cyan" onclick="addBlocklistEntry()"><i class="fas fa-plus"></i> ADD URL</button>
+    </div>
+    <div class="add-row">
+      <input type="text" class="hud-input" id="blocklistSearch" placeholder="Search blocklist..." style="max-width:300px;">
+    </div>
+    <div class="table-scroll">
+      <table class="hud-table">
+        <thead><tr><th>URL</th><th>Source</th><th>Date Added</th><th>Action</th></tr></thead>
+        <tbody id="blocklistBody"><tr><td colspan="4" class="empty-state">Loading...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="blocklistPagination"></div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- SECTION 3: SCAN VOLUME CHART                                   -->
+  <!-- ============================================================= -->
+  <div class="hud section">
+    <span class="bl"></span><span class="br"></span>
+    <div class="section-title"><i class="fas fa-chart-area"></i> SCAN VOLUME — LAST 30 DAYS</div>
+    <div class="chart-wrap">
+      <canvas id="scanVolumeChart"></canvas>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- SECTION 4: IP ABUSE MONITOR                                    -->
+  <!-- ============================================================= -->
+  <div class="hud section">
+    <span class="bl"></span><span class="br"></span>
+    <div class="section-title"><i class="fas fa-user-secret"></i> IP ABUSE MONITOR — TOP 20 (24H)</div>
+    <div class="table-scroll">
+      <table class="hud-table">
+        <thead><tr><th>#</th><th>IP Hash</th><th>Requests</th><th>Last Seen</th><th>Action</th></tr></thead>
+        <tbody id="ipAbuseBody"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- SECTION 5: DOMAIN SEARCH                                       -->
+  <!-- ============================================================= -->
+  <div class="hud section">
+    <span class="bl"></span><span class="br"></span>
+    <div class="section-title"><i class="fas fa-search"></i> DOMAIN SEARCH</div>
+    <div class="add-row">
+      <input type="text" class="hud-input" id="domainSearchInput" placeholder="Search domain (e.g. paypal.com)..."
+             style="max-width:400px;" onkeydown="if(event.key==='Enter')searchDomain()">
+      <button class="btn-cyan" onclick="searchDomain()"><i class="fas fa-search"></i> SEARCH</button>
+      <button class="btn-cyan" id="exportFilteredBtn" style="display:none" onclick="exportCSV(true)">
+        <i class="fas fa-file-csv"></i> EXPORT FILTERED
+      </button>
+    </div>
+    <div class="table-scroll">
+      <table class="hud-table">
+        <thead><tr><th>URL</th><th>Domain</th><th>Score</th><th>Risk</th><th>Date</th></tr></thead>
+        <tbody id="domainSearchBody">
+          <tr><td colspan="5" class="empty-state">Enter a domain to search scan history</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- SECTION 6: CSV EXPORT                                          -->
+  <!-- ============================================================= -->
+  <div class="hud section" style="text-align:center;">
+    <span class="bl"></span><span class="br"></span>
+    <div class="section-title" style="justify-content:center;"><i class="fas fa-download"></i> DATA EXPORT</div>
+    <p style="font-family:var(--font-mono); font-size:.8rem; color:var(--text-dim); margin-bottom:16px;">
+      Download the complete scans database as a CSV file for offline analysis.
+    </p>
+    <button class="btn-cyan" onclick="exportCSV(false)" style="font-size:.85rem; padding:12px 28px;">
+      <i class="fas fa-file-csv"></i> EXPORT ALL SCANS AS CSV
+    </button>
+  </div>
+
+  <!-- Feedback Analysis -->
+  <div class="hud section">
+    <span class="bl"></span><span class="br"></span>
+    <div class="section-title"><i class="fas fa-chart-line"></i> FEEDBACK ANALYSIS</div>
+    <div class="system-info">
+      <div class="info-row">
+        <span class="info-label">False Positives Reported</span>
+        <span class="info-value" style="color:var(--amber)">{{ feedback_stats.get('false_positive', 0) }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">False Negatives Reported</span>
+        <span class="info-value" style="color:var(--red)">{{ feedback_stats.get('false_negative', 0) }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Confirmed Threats</span>
+        <span class="info-value" style="color:var(--green)">{{ feedback_stats.get('confirmed', 0) }}</span>
+      </div>
+    </div>
+
+    <div class="signal-analysis">
+      <div class="analysis-subtitle">Signals in False Positives (too aggressive)</div>
+      {% set fp_signals = signal_analysis.get('false_positive', {}) %}
+      {% if fp_signals %}
+        {% for signal, count in (fp_signals.items() | sort(attribute='1', reverse=True) | list)[:10] %}
+        <div class="signal-item fp">
+          <span class="signal-name">{{ signal }}</span>
+          <span class="signal-count">{{ count }}x</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="font-family:var(--font-mono);font-size:.8rem;color:var(--text-dim);padding:8px;">
+          No false positive data yet.
+        </div>
+      {% endif %}
+
+      <div class="analysis-subtitle" style="margin-top:20px">Signals in False Negatives (missed threats)</div>
+      {% set fn_signals = signal_analysis.get('false_negative', {}) %}
+      {% if fn_signals %}
+        {% for signal, count in (fn_signals.items() | sort(attribute='1', reverse=True) | list)[:10] %}
+        <div class="signal-item fn">
+          <span class="signal-name">{{ signal }}</span>
+          <span class="signal-count">{{ count }}x</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="font-family:var(--font-mono);font-size:.8rem;color:var(--text-dim);padding:8px;">
+          No false negative data yet.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Manual Triggers -->
+  <div class="hud section">
+    <span class="bl"></span><span class="br"></span>
+    <div class="section-title"><i class="fas fa-bolt"></i> MANUAL TRIGGERS</div>
+    <div class="trigger-grid">
+      <div class="trigger-card">
+        <div class="trigger-title"><i class="fas fa-list-check"></i> Refresh Blocklists</div>
+        <div class="trigger-desc">
+          Pull latest entries from OpenPhish, URLhaus, and other threat intelligence feeds.
+        </div>
+        <button class="trigger-btn" onclick="triggerAction('refresh_blocklist')">
+          <i class="fas fa-rotate"></i> REFRESH NOW
+        </button>
+      </div>
+      
+      <div class="trigger-card">
+        <div class="trigger-title"><i class="fas fa-brain"></i> Retrain ML Model</div>
+        <div class="trigger-desc">
+          Retrain the machine learning classifier using latest feedback data. Requires Phase 4 implementation.
+        </div>
+        <button class="trigger-btn" onclick="triggerAction('retrain_ml')">
+          <i class="fas fa-rocket"></i> RETRAIN MODEL
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toastContainer"></div>
+
+<script>
+/* ---- Toast ---- */
+function toast(message, type='info'){
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = message;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+/* ---- Trigger Actions ---- */
+async function triggerAction(action){
+  const btn = event.currentTarget || event.target.closest('button');
+  btn.disabled = true;
+  const origHTML = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESSING...';
+  try{
+    const res = await fetch('/admin/trigger', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action})
+    });
+    const data = await res.json();
+    if(data.success) toast(data.message, 'success');
+    else toast('Error: ' + (data.error || 'Unknown error'), 'error');
+  } catch(e) {
+    toast('Network error: ' + e.message, 'error');
+  } finally {
+    setTimeout(() => { btn.disabled = false; btn.innerHTML = origHTML; }, 2000);
+  }
+}
+
+/* ---- Helpers ---- */
+function fmtDate(ts){
+  if(!ts) return 'N/A';
+  return new Date(ts * 1000).toISOString().slice(0,16).replace('T',' ');
+}
+function riskBadge(risk){
+  if(!risk) return '';
+  const map = {'SAFE':'risk-SAFE','LOW RISK':'risk-LOW','HIGH RISK':'risk-HIGH','PHISHING':'risk-PHISHING'};
+  return `<span class="risk-badge ${map[risk]||'risk-SAFE'}">${escapeHtml(risk)}</span>`;
+}
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+/* ================================================================
+   SECTION 1: SIGNAL WEIGHT EDITOR
+   ================================================================ */
+async function saveWeights(){
+  const inputs = document.querySelectorAll('#weightsTable input[type="number"]');
+  const weights = {};
+  let valid = true;
+  inputs.forEach(inp => {
+    const v = parseFloat(inp.value);
+    if(isNaN(v)){ toast('Invalid value for: ' + inp.dataset.key, 'error'); valid = false; return; }
+    weights[inp.dataset.key] = v;
+  });
+  if(!valid) return;
+  try{
+    const res = await fetch('/admin/weights', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({weights})
+    });
+    const data = await res.json();
+    if(data.success) toast(data.message, 'success');
+    else toast('Error: '+(data.error||'Unknown'), 'error');
+  }catch(e){ toast('Network error: '+e.message, 'error'); }
+}
+
+function resetWeights(){
+  document.querySelectorAll('#weightsTable input[type="number"]').forEach(inp => {
+    inp.value = inp.dataset.default;
+  });
+  toast('Values reset to defaults — click SAVE to persist', 'info');
+}
+
+/* ================================================================
+   SECTION 2: BLOCKLIST MANAGER
+   (XSS fix: remove buttons use event delegation via data-url,
+    no URL value ever interpolated into a JS string)
+   ================================================================ */
+let blocklistCurrentPage = 1;
+let _blocklistDebounce = null;
+
+/* Debounced search — fires 300ms after the user stops typing */
+function onBlocklistSearchInput(){
+  clearTimeout(_blocklistDebounce);
+  _blocklistDebounce = setTimeout(() => loadBlocklist(1), 300);
+}
+
+async function loadBlocklist(page){
+  blocklistCurrentPage = page || 1;
+  const search = document.getElementById('blocklistSearch').value;
+  try{
+    const res = await fetch(
+      `/admin/api/blocklist?page=${blocklistCurrentPage}&search=${encodeURIComponent(search)}`
+    );
+    const data = await res.json();
+    const tbody = document.getElementById('blocklistBody');
+    if(!data.entries || data.entries.length === 0){
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No entries found</td></tr>';
+    } else {
+      tbody.innerHTML = data.entries.map(e => {
+        const display = e.url.length > 60 ? e.url.slice(0,57)+'…' : e.url;
+        return `<tr>
+          <td title="${escapeHtml(e.url)}">${escapeHtml(display)}</td>
+          <td style="color:var(--text-dim)">${escapeHtml(e.source)}</td>
+          <td style="color:var(--text-dim)">${fmtDate(e.added_at)}</td>
+          <td><button class="btn-red bl-remove-btn" data-url="${escapeHtml(e.url)}">
+            <i class="fas fa-trash"></i> Remove</button></td>
+        </tr>`;
+      }).join('');
+    }
+    /* Pagination */
+    const pag = document.getElementById('blocklistPagination');
+    if(data.pages > 1){
+      let html = `<span>Page ${data.page} / ${data.pages} (${data.total} total)</span>`;
+      if(data.page > 1) html += `<button data-blpage="${data.page-1}">« Prev</button>`;
+      if(data.page < data.pages) html += `<button data-blpage="${data.page+1}">Next »</button>`;
+      pag.innerHTML = html;
+    } else {
+      pag.innerHTML = data.total > 0 ? `<span>${data.total} entries</span>` : '';
+    }
+  }catch(e){ toast('Failed to load blocklist: '+e.message, 'error'); }
+}
+
+/* Single delegated listener for the entire blocklist table body */
+document.addEventListener('click', function(e){
+  /* Remove button */
+  const removeBtn = e.target.closest('.bl-remove-btn');
+  if(removeBtn){
+    const url = removeBtn.dataset.url;
+    if(!confirm('Remove this entry from the blocklist?\n\n' + url)) return;
+    fetch('/admin/blocklist/remove', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({url})
+    }).then(r => r.json()).then(data => {
+      if(data.success){ toast('Removed from blocklist', 'success'); loadBlocklist(blocklistCurrentPage); }
+      else toast('Error: '+(data.error||'Unknown'), 'error');
+    }).catch(err => toast('Network error: '+err.message, 'error'));
+    return;
+  }
+  /* Pagination buttons */
+  const blPageBtn = e.target.closest('[data-blpage]');
+  if(blPageBtn){ loadBlocklist(parseInt(blPageBtn.dataset.blpage)); return; }
+  /* IP block button */
+  const ipBlockBtn = e.target.closest('.ip-block-btn');
+  if(ipBlockBtn){
+    const ipHash = ipBlockBtn.dataset.iphash;
+    if(!confirm('Block IP hash:\n' + ipHash + '\n\nThey will receive 403 on all future requests.')) return;
+    fetch('/admin/block-ip', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ip_hash: ipHash})
+    }).then(r => r.json()).then(data => {
+      if(data.success){
+        toast(data.message, 'success');
+        /* Mark the row visually without reload */
+        ipBlockBtn.disabled = true;
+        ipBlockBtn.innerHTML = '<i class="fas fa-check"></i> Blocked';
+        ipBlockBtn.style.borderColor = 'rgba(57,255,138,.3)';
+        ipBlockBtn.style.color = 'var(--green)';
+      } else toast('Error: '+(data.error||'Unknown'), 'error');
+    }).catch(err => toast('Network error: '+err.message, 'error'));
+    return;
+  }
+});
+
+async function addBlocklistEntry(){
+  const input = document.getElementById('blocklistAddUrl');
+  const url = input.value.trim();
+  if(!url){ toast('Enter a URL first', 'error'); return; }
+  if(url.length > 2048){ toast('URL too long (max 2048 chars)', 'error'); return; }
+  try{
+    const res = await fetch('/admin/blocklist/add', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({url})
+    });
+    const data = await res.json();
+    if(data.success){ toast(data.message, 'success'); input.value=''; loadBlocklist(1); }
+    else toast('Error: '+(data.error||'Unknown'), 'error');
+  }catch(e){ toast('Network error: '+e.message, 'error'); }
+}
+
+/* ================================================================
+   SECTION 3: SCAN VOLUME CHART
+   (Bug fix: destroy existing Chart instance before re-creating)
+   ================================================================ */
+let _scanVolumeChart = null;
+
+async function loadScanVolumeChart(){
+  try{
+    const res = await fetch('/admin/api/scan-volume');
+    const data = await res.json();
+    const ctx = document.getElementById('scanVolumeChart').getContext('2d');
+    /* Destroy previous instance to prevent "Canvas already in use" error */
+    if(_scanVolumeChart){ _scanVolumeChart.destroy(); _scanVolumeChart = null; }
+    _scanVolumeChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.labels || [],
+        datasets: [
+          { label:'SAFE', data:data.safe||[], borderColor:'#39ff8a',
+            backgroundColor:'rgba(57,255,138,.12)', fill:true, tension:.3, pointRadius:2 },
+          { label:'LOW RISK', data:data.low_risk||[], borderColor:'#ffb020',
+            backgroundColor:'rgba(255,176,32,.12)', fill:true, tension:.3, pointRadius:2 },
+          { label:'HIGH RISK', data:data.high_risk||[], borderColor:'#ff8c42',
+            backgroundColor:'rgba(255,140,66,.12)', fill:true, tension:.3, pointRadius:2 },
+          { label:'PHISHING', data:data.phishing||[], borderColor:'#ff3860',
+            backgroundColor:'rgba(255,56,96,.12)', fill:true, tension:.3, pointRadius:2 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color:'#5f7d8a', font:{ family:'Share Tech Mono', size:11 } } }
+        },
+        scales: {
+          x: { stacked:true,
+               ticks:{ color:'#5f7d8a', font:{ family:'Share Tech Mono', size:10 }, maxRotation:45 },
+               grid:{ color:'rgba(0,229,255,.06)' } },
+          y: { stacked:true, beginAtZero:true,
+               ticks:{ color:'#5f7d8a', font:{ family:'Share Tech Mono', size:10 } },
+               grid:{ color:'rgba(0,229,255,.06)' } }
+        }
+      }
+    });
+  }catch(e){ console.error('Chart error:', e); }
+}
+
+/* ================================================================
+   SECTION 4: IP ABUSE MONITOR
+   (XSS fix: Block button uses data-iphash, handled by delegated listener above)
+   ================================================================ */
+async function loadTopIPs(){
+  try{
+    const res = await fetch('/admin/api/top-ips');
+    const data = await res.json();
+    const tbody = document.getElementById('ipAbuseBody');
+    if(!data || data.length === 0){
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No scan data in the last 24 hours</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.map((ip, i) =>
+      `<tr>
+        <td style="color:var(--text-dim)">${i+1}</td>
+        <td style="color:var(--cyan);font-family:var(--font-mono)">${escapeHtml(ip.ip_hash)}</td>
+        <td><strong>${ip.cnt}</strong></td>
+        <td style="color:var(--text-dim)">${fmtDate(ip.last_seen)}</td>
+        <td><button class="btn-red ip-block-btn" data-iphash="${escapeHtml(ip.ip_hash)}">
+          <i class="fas fa-shield-halved"></i> Block</button></td>
+      </tr>`
+    ).join('');
+  }catch(e){ toast('Failed to load IP data: '+e.message, 'error'); }
+}
+
+/* ================================================================
+   SECTION 5: DOMAIN SEARCH
+   ================================================================ */
+let currentDomainFilter = '';
+
+async function searchDomain(){
+  const q = document.getElementById('domainSearchInput').value.trim();
+  currentDomainFilter = q;
+  const tbody = document.getElementById('domainSearchBody');
+  const exportBtn = document.getElementById('exportFilteredBtn');
+  if(!q){
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Enter a domain to search scan history</td></tr>';
+    exportBtn.style.display = 'none';
+    return;
+  }
+  tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-spinner fa-spin"></i> Searching...</td></tr>';
+  try{
+    const res = await fetch(`/admin/api/domain-search?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    if(!data || data.length === 0){
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No scans found for "'+escapeHtml(q)+'"</td></tr>';
+      exportBtn.style.display = 'none';
+    } else {
+      tbody.innerHTML = data.map(s => {
+        const display = s.url && s.url.length > 55 ? s.url.slice(0,52)+'…' : s.url;
+        return `<tr>
+          <td title="${escapeHtml(s.url)}">${escapeHtml(display)}</td>
+          <td>${escapeHtml(s.domain)}</td>
+          <td><strong>${s.score}</strong></td>
+          <td>${riskBadge(s.risk)}</td>
+          <td style="color:var(--text-dim)">${fmtDate(s.created_at)}</td>
+        </tr>`;
+      }).join('');
+      exportBtn.style.display = 'inline-block';
+    }
+  }catch(e){ toast('Search failed: '+e.message, 'error'); }
+}
+
+/* ================================================================
+   SECTION 6: CSV EXPORT
+   ================================================================ */
+function exportCSV(filtered){
+  let url = '/admin/export-csv';
+  if(filtered && currentDomainFilter){
+    url += '?domain=' + encodeURIComponent(currentDomainFilter);
+  }
+  window.location = url;
+}
+
+/* ---- Init on page load ---- */
+document.addEventListener('DOMContentLoaded', function(){
+  /* Wire up the debounced search */
+  document.getElementById('blocklistSearch').addEventListener('input', onBlocklistSearchInput);
+  loadBlocklist(1);
+  loadScanVolumeChart();
+  loadTopIPs();
+});
+</script>
+</body>
+</html>

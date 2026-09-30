@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhishingHunter Elite</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <span class="logo-text">PHISHING</span>
+        <span class="logo-hunter">HUNTER</span>
+      </div>
+      <div class="version">v2.0 ELITE</div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Scanning URL...</div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="error hidden">
+      <div class="error-icon">⚠</div>
+      <div class="error-text">Unable to connect to PhishingHunter API</div>
+      <div class="error-hint">Make sure the server is running at:</div>
+      <div class="error-endpoint" id="errorEndpoint"></div>
+      <button class="btn-settings" id="btnSettings">⚙ Settings</button>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="hidden">
+      <!-- Risk Score Card -->
+      <div class="risk-card">
+        <div class="risk-label">THREAT LEVEL</div>
+        <div class="risk-score" id="riskScore">--</div>
+        <div class="risk-level" id="riskLevel">ANALYZING</div>
+        <div class="risk-bar">
+          <div class="risk-fill" id="riskFill"></div>
+        </div>
+      </div>
+
+      <!-- URL Info -->
+      <div class="url-section">
+        <div class="section-label">TARGET</div>
+        <div class="url-display" id="urlDisplay" title="">...</div>
+        <div class="domain-chip" id="domainChip">...</div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">SIGNALS</div>
+          <div class="stat-value" id="statSignals">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">SCAN TIME</div>
+          <div class="stat-value" id="statTime">0ms</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">CACHED</div>
+          <div class="stat-value" id="statCached">NO</div>
+        </div>
+      </div>
+
+      <!-- Top Signals -->
+      <div class="signals-section">
+        <div class="section-label">TOP THREAT SIGNALS</div>
+        <div id="signalsList" class="signals-list">
+          <!-- Signals inserted by JS -->
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button class="btn-primary" id="btnDetails">View Full Report</button>
+        <button class="btn-secondary" id="btnFeedback">Report Issue</button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <span>Powered by AI + Visual Analysis</span>
+      <button class="btn-icon" id="btnOptionsFooter" title="Settings">⚙</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+# docker-compose.yml
+# ------------------
+# Production deployment stack for PhishingHunter Elite
+#
+# Services:
+#   - app: PhishingHunter Flask app (4 gunicorn workers)
+#   - postgres: PostgreSQL 16 database
+#   - redis: Redis for caching and rate limiting
+#   - nginx: Reverse proxy with HTTPS
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: phishinghunter-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: phishinghunter
+      POSTGRES_USER: phishuser
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_in_production}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U phishuser -d phishinghunter"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - phishinghunter-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: phishinghunter-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - phishinghunter-network
+
+  # PhishingHunter App
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phishinghunter-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: postgresql://phishuser:${POSTGRES_PASSWORD:-changeme_in_production}@postgres:5432/phishinghunter
+      
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      
+      # Flask
+      FLASK_ENV: production
+      PHISHINGHUNTER_SECRET: ${SECRET_KEY:-please_change_this_in_production}
+      
+      # API Keys (optional)
+      GOOGLE_SAFE_BROWSING_API_KEY: ${GOOGLE_SAFE_BROWSING_API_KEY:-}
+      VIRUSTOTAL_API_KEY: ${VIRUSTOTAL_API_KEY:-}
+      
+      # Gunicorn
+      WORKERS: 4
+      TIMEOUT: 120
+      
+      # Logging
+      LOG_LEVEL: INFO
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./ml:/app/ml:ro
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - phishinghunter-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: phishinghunter-nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./static:/app/static:ro
+    networks:
+      - phishinghunter-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  phishinghunter-network:
+    driver: bridge

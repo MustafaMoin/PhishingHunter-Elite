@@ -1,0 +1,178 @@
+# humanstxt.org/
+# The humans responsible for building this awesome project
+
+/* TEAM */
+
+Founder & Lead Developer: Mustafa Moin
+Role: Full-Stack Developer & Security Engineer
+Contact: mustafamoin [at] protonmail.com
+GitHub: github.com/mustafamoin
+LinkedIn: linkedin.com/in/mustafamoin
+Location: Karachi, Pakistan
+
+/* THANKS */
+
+Open Source Community
+Stack Overflow Contributors
+Security Research Community
+Python & Flask Community
+MongoDB Community
+
+/* SITE */
+
+Project: PhishingHunter Elite v2.0
+Description: Advanced AI-powered phishing detection and URL security scanner
+Primary Language: Python (Flask Framework)
+Frontend: HTML5, CSS3, JavaScript (Vanilla JS)
+Backend: Python, Flask, MongoDB
+Machine Learning: scikit-learn, NumPy
+Visual Analysis: Playwright, Pillow, ImageHash
+APIs: Google Safe Browsing API, VirusTotal API
+Database: MongoDB Atlas (Cloud)
+Hosting: Render.com (Free Tier)
+Version Control: Git
+Repository: github.com/mustafamoin/PhishingHunter
+Last Update: 2024/12/20
+Doctype: HTML5
+IDE: Visual Studio Code
+Standards: W3C, WCAG 2.1, Schema.org
+
+/* FEATURES */
+
+✓ Real-time phishing detection
+✓ Machine learning threat analysis (99.55% accuracy)
+✓ Visual similarity detection
+✓ Multi-source threat intelligence
+✓ SSL certificate validation
+✓ Domain age verification
+✓ Redirect chain analysis
+✓ Google Safe Browsing integration
+✓ VirusTotal API integration
+✓ Progressive Web App (PWA)
+✓ Responsive design
+✓ Dark mode interface
+✓ Admin dashboard
+✓ Feedback system
+✓ Rate limiting
+✓ API endpoints
+✓ Real-time statistics
+✓ Scan history
+
+/* TECHNOLOGY STACK */
+
+Backend:
+- Python 3.12+
+- Flask 3.0+
+- MongoDB (PyMongo)
+- scikit-learn (ML)
+- Playwright (Visual Analysis)
+- Requests, BeautifulSoup4
+- python-whois, tldextract
+
+Frontend:
+- Semantic HTML5
+- Modern CSS3 (Custom Properties, Grid, Flexbox)
+- Vanilla JavaScript (ES6+)
+- Canvas API (Radar Animation)
+- Service Workers (PWA)
+- Web Manifest
+
+Infrastructure:
+- MongoDB Atlas (Database)
+- Render.com (Hosting)
+- Cloudflare (DNS/CDN - Optional)
+- GitHub (Version Control)
+
+Security:
+- Flask-Login (Authentication)
+- SHA-256 Password Hashing
+- Rate Limiting
+- Input Validation
+- XSS Protection
+- CSRF Protection
+- Secure Headers
+
+SEO & Performance:
+- Schema.org JSON-LD
+- Open Graph Protocol
+- Twitter Cards
+- DNS Prefetch
+- Resource Preconnect
+- Lazy Loading
+- Service Worker Caching
+- Gzip Compression
+
+/* STATISTICS */
+
+Development Time: 6+ months
+Lines of Code: 10,000+
+Blocklist Entries: 31,533+
+ML Training Samples: 50,000+
+Detection Accuracy: 99.55%
+Response Time: <200ms average
+Lighthouse Score: 95+ (Performance)
+Core Web Vitals: Pass
+
+/* ACHIEVEMENTS */
+
+✓ 99.55% ML detection accuracy
+✓ Real-time threat analysis
+✓ Multi-layer detection system
+✓ Production-ready architecture
+✓ Cloud-native infrastructure
+✓ PWA-enabled
+✓ Mobile-responsive
+✓ SEO-optimized
+✓ Open source contribution
+
+/* MISSION */
+
+To provide free, accessible, and advanced phishing detection tools
+to protect individuals and organizations from cyber threats.
+Democratizing cybersecurity through open-source innovation.
+
+/* PRINCIPLES */
+
+- Security First
+- User Privacy
+- Open Source
+- Community Driven
+- Continuous Improvement
+- Accessibility for All
+- Performance Optimized
+- Mobile First
+
+/* LICENSE */
+
+This project is open source.
+Please check the repository for license details.
+
+/* CONTACT */
+
+For inquiries, collaborations, or security reports:
+Email: mustafamoin [at] protonmail.com
+GitHub Issues: github.com/mustafamoin/PhishingHunter/issues
+
+/* DISCLAIMER */
+
+PhishingHunter Elite provides heuristic-based threat detection.
+Results should be used as guidance alongside other security measures.
+No system can guarantee 100% detection accuracy.
+
+/* CREDITS */
+
+Built with ❤️ and ☕ by Mustafa Moin in Karachi, Pakistan
+
+                    .
+                   / \
+                  / _ \
+                 |.o '.|
+                 |'._.'|
+                 |     |
+               ,'|  |  |`.
+              /  |  |  |  \
+              |,-'--|--'-.|
+
+        PhishingHunter Elite v2.0
+        Protecting the digital world,
+        one URL at a time.

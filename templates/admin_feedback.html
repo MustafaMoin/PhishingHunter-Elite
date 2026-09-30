@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feedback Analysis | PHISHINGHUNTER ADMIN</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{
+  --void:#05070a; --panel:#0a1018; --panel-2:#0d1622;
+  --grid-line:rgba(0,229,255,.05);
+  --green:#39ff8a; --cyan:#00d9ff; --amber:#ffb020; --red:#ff3860; --violet:#9b6bff;
+  --text:#d7ecf3; --text-dim:#5f7d8a;
+  --font-display:'Orbitron',sans-serif; --font-mono:'Share Tech Mono',monospace; --font-body:'Rajdhani',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--void); color:var(--text); font-family:var(--font-body);
+  min-height:100vh; overflow-x:hidden; position:relative;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:42px 42px;
+  mask-image:radial-gradient(ellipse at 50% 20%, black 10%, transparent 75%);
+}
+
+.container{max-width:1600px; margin:auto; padding:24px; position:relative; z-index:10;}
+
+.hud{position:relative; background:linear-gradient(160deg, rgba(10,16,24,.92), rgba(13,22,34,.88));
+  border:1px solid rgba(0,217,255,.15); border-radius:6px; backdrop-filter:blur(14px);}
+.hud::before,.hud::after,.hud .bl,.hud .br{content:''; position:absolute; width:16px; height:16px; border-color:var(--cyan); pointer-events:none;}
+.hud::before{top:-1px; left:-1px; border-top:2px solid var(--cyan); border-left:2px solid var(--cyan);}
+.hud::after{top:-1px; right:-1px; border-top:2px solid var(--cyan); border-right:2px solid var(--cyan);}
+.hud .bl{bottom:-1px; left:-1px; border-bottom:2px solid var(--cyan); border-left:2px solid var(--cyan);}
+.hud .br{bottom:-1px; right:-1px; border-bottom:2px solid var(--cyan); border-right:2px solid var(--cyan);}
+
+.header{text-align:center; margin:40px 0 30px;}
+.logo{font-family:var(--font-display); font-weight:900; font-size:2.5rem; color:var(--violet);
+  text-shadow:0 0 24px rgba(155,107,255,.45); letter-spacing:2px;}
+.tagline{font-family:var(--font-mono); color:var(--text-dim); font-size:.9rem; margin-top:10px; letter-spacing:1px;}
+.nav-row{display:flex; gap:12px; justify-content:center; margin-top:20px; flex-wrap:wrap;}
+.nav-btn{font-family:var(--font-mono); font-size:.75rem; padding:8px 16px; border-radius:4px;
+  border:1px solid rgba(0,217,255,.25); background:transparent; color:var(--text);
+  text-decoration:none; display:inline-block; transition:.2s;}
+.nav-btn:hover{border-color:var(--cyan); color:var(--cyan);}
+.nav-btn.active{border-color:var(--violet); color:var(--violet);}
+
+.stats-row{display:flex; gap:12px; justify-content:center; margin:20px 0; flex-wrap:wrap;}
+.stat-pill{font-family:var(--font-mono); font-size:.8rem; padding:8px 18px; border-radius:20px;
+  border:1px solid rgba(0,217,255,.25); color:var(--text-dim); display:flex; align-items:center; gap:8px;}
+.stat-pill .num{color:var(--cyan); font-weight:700;}
+
+.filter-row{display:flex; gap:10px; justify-content:center; margin:20px 0; flex-wrap:wrap;}
+.filter-btn{font-family:var(--font-mono); font-size:.75rem; padding:8px 16px; border-radius:4px;
+  border:1px solid rgba(0,217,255,.25); background:transparent; color:var(--text);
+  text-decoration:none; display:inline-block; transition:.2s; cursor:pointer;}
+.filter-btn:hover{border-color:var(--cyan); color:var(--cyan);}
+.filter-btn.active{border-color:var(--violet); background:rgba(155,107,255,.15); color:var(--violet);}
+
+.section{padding:30px; margin:30px 0;}
+.section-title{font-family:var(--font-mono); color:var(--violet); font-size:.85rem; letter-spacing:2px;
+  margin-bottom:18px; text-transform:uppercase; display:flex; align-items:center; gap:10px;}
+
+.feedback-table{width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:.8rem;}
+.feedback-table thead{border-bottom:2px solid rgba(0,217,255,.25);}
+.feedback-table th{text-align:left; padding:12px 10px; color:var(--cyan); font-weight:600; letter-spacing:1px;}
+.feedback-table td{padding:12px 10px; border-bottom:1px solid rgba(255,255,255,.05);}
+.feedback-table tr:hover{background:rgba(0,217,255,.03);}
+
+.badge{display:inline-block; padding:4px 10px; border-radius:12px; font-size:.7rem; letter-spacing:1px;}
+.badge-fp{background:rgba(255,176,32,.15); color:var(--amber); border:1px solid rgba(255,176,32,.3);}
+.badge-fn{background:rgba(255,56,96,.15); color:var(--red); border:1px solid rgba(255,56,96,.3);}
+.badge-confirmed{background:rgba(57,255,138,.15); color:var(--green); border:1px solid rgba(57,255,138,.3);}
+
+.url-cell{max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text);}
+.score-cell{font-weight:700;}
+.score-safe{color:var(--green);} .score-low{color:var(--amber);} .score-high{color:#ff7a3d);} .score-phishing{color:var(--red);}
+
+.expand-btn{background:transparent; border:1px solid rgba(0,217,255,.25); color:var(--cyan);
+  padding:4px 10px; border-radius:3px; cursor:pointer; font-size:.7rem; transition:.2s;}
+.expand-btn:hover{background:rgba(0,217,255,.1);}
+
+.signal-detail{display:none; padding:12px; background:rgba(0,0,0,.3); border-left:3px solid var(--violet);
+  margin-top:8px; font-size:.75rem; line-height:1.6; color:var(--text-dim);}
+.signal-detail.show{display:block;}
+.signal-detail .sig-item{margin:4px 0; padding-left:12px;}
+
+@media(max-width:768px){
+  .feedback-table{font-size:.7rem;}
+  .feedback-table th, .feedback-table td{padding:8px 6px;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo"><i class="fas fa-comment-dots"></i> FEEDBACK ANALYSIS</div>
+    <div class="tagline">User-reported false positives, false negatives, and confirmations</div>
+    <div class="nav-row">
+      <a href="/admin" class="nav-btn"><i class="fas fa-gauge"></i> Dashboard</a>
+      <a href="/admin/feedback" class="nav-btn active"><i class="fas fa-comment-dots"></i> Feedback Analysis</a>
+      <a href="/" class="nav-btn"><i class="fas fa-globe"></i> Main Dashboard</a>
+      <a href="/admin/logout" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-pill">
+      <i class="fas fa-triangle-exclamation" style="color:var(--amber)"></i>
+      <span>False Positives:</span>
+      <span class="num">{{ feedback_stats.get('false_positive', 0) }}</span>
+    </div>
+    <div class="stat-pill">
+      <i class="fas fa-skull-crossbones" style="color:var(--red)"></i>
+      <span>False Negatives:</span>
+      <span class="num">{{ feedback_stats.get('false_negative', 0) }}</span>
+    </div>
+    <div class="stat-pill">
+      <i class="fas fa-check-circle" style="color:var(--green)"></i>
+      <span>Confirmed:</span>
+      <span class="num">{{ feedback_stats.get('confirmed', 0) }}</span>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <a href="/admin/feedback" class="filter-btn {% if not current_filter %}active{% endif %}">
+      <i class="fas fa-list"></i> All Feedback
+    </a>
+    <a href="/admin/feedback?filter=false_positive" class="filter-btn {% if current_filter == 'false_positive' %}active{% endif %}">
+      <i class="fas fa-triangle-exclamation"></i> False Positives Only
+    </a>
+    <a href="/admin/feedback?filter=false_negative" class="filter-btn {% if current_filter == 'false_negative' %}active{% endif %}">
+      <i class="fas fa-skull-crossbones"></i> False Negatives Only
+    </a>
+    <a href="/admin/feedback?filter=confirmed" class="filter-btn {% if current_filter == 'confirmed' %}active{% endif %}">
+      <i class="fas fa-check-circle"></i> Confirmed Only
+    </a>
+  </div>
+
+  <div class="hud section">
+    <span class="bl"></span><span class="br"></span>
+    <div class="section-title">
+      <i class="fas fa-table"></i> 
+      FEEDBACK SUBMISSIONS 
+      {% if current_filter %}
+        <span style="color:var(--amber)">({{ current_filter.replace('_', ' ').title() }})</span>
+      {% endif %}
+    </div>
+
+    {% if feedback_list %}
+    <div style="overflow-x:auto;">
+      <table class="feedback-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>URL</th>
+            <th>Score</th>
+            <th>Risk</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in feedback_list %}
+          <tr>
+            <td>#{{ item.id }}</td>
+            <td>
+              {% if item.feedback_type == 'false_positive' %}
+                <span class="badge badge-fp">FALSE POSITIVE</span>
+              {% elif item.feedback_type == 'false_negative' %}
+                <span class="badge badge-fn">FALSE NEGATIVE</span>
+              {% else %}
+                <span class="badge badge-confirmed">CONFIRMED</span>
+              {% endif %}
+            </td>
+            <td class="url-cell" title="{{ item.url }}">{{ item.url or item.domain or 'N/A' }}</td>
+            <td class="score-cell 
+              {% if item.score >= 75 %}score-phishing
+              {% elif item.score >= 50 %}score-high
+              {% elif item.score >= 30 %}score-low
+              {% else %}score-safe{% endif %}">
+              {{ item.score or 'N/A' }}
+            </td>
+            <td>{{ item.risk or 'N/A' }}</td>
+            <td>{{ item.created_at | int | timestamp_to_date }}</td>
+            <td>
+              <button class="expand-btn" onclick="toggleSignals({{ item.id }})">
+                <i class="fas fa-eye"></i> View Signals
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="7" style="padding:0;">
+              <div id="signals-{{ item.id }}" class="signal-detail">
+                <div style="color:var(--violet);margin-bottom:8px;font-weight:600;">
+                  <i class="fas fa-chart-simple"></i> Detection Signals:
+                </div>
+                {% if item.signals %}
+                  {% for signal in item.signals %}
+                    <div class="sig-item">
+                      <span style="color:var(--cyan)">{{ signal.detail }}</span>
+                      <span style="color:var(--text-dim);margin-left:8px;">(+{{ signal.points }})</span>
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  <div style="color:var(--text-dim);padding-left:12px;">No signal data available.</div>
+                {% endif %}
+                {% if item.comment %}
+                  <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.05);">
+                    <span style="color:var(--violet)">Comment:</span> 
+                    <span style="color:var(--text)">{{ item.comment }}</span>
+                  </div>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:40px;font-family:var(--font-mono);color:var(--text-dim);">
+      <i class="fas fa-inbox" style="font-size:3rem;margin-bottom:16px;display:block;"></i>
+      No feedback submissions yet
+      {% if current_filter %}for type "{{ current_filter.replace('_', ' ').title() }}"{% endif %}.
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+function toggleSignals(id){
+  const el = document.getElementById('signals-' + id);
+  el.classList.toggle('show');
+}
+</script>
+</body>
+</html>
