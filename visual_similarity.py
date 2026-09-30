@@ -60,9 +60,14 @@ HAMMING_DISTANCE_THRESHOLD = 10  # Similar if distance <= 10
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "phishinghunter.db")
 _lock = threading.Lock()
 
+# Check if running in production (Render) or local
+IS_PRODUCTION = os.getenv("RENDER") is not None or not os.path.exists(os.path.dirname(DB_PATH))
+
 
 def _get_conn():
     """Get database connection."""
+    if IS_PRODUCTION:
+        return None  # Skip SQLite in production
     conn = sqlite3.connect(DB_PATH, timeout=10, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
@@ -70,35 +75,45 @@ def _get_conn():
 
 def _init_visual_tables():
     """Initialize visual similarity tables if they don't exist."""
-    with _lock, _get_conn() as conn:
-        conn.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS visual_reference (
-                brand TEXT NOT NULL,
-                domain TEXT NOT NULL,
-                page_type TEXT NOT NULL,
-                phash TEXT NOT NULL,
-                screenshot_blob BLOB,
-                added_at REAL NOT NULL,
-                PRIMARY KEY (brand, page_type)
-            );
-            
-            CREATE TABLE IF NOT EXISTS visual_cache (
-                url_hash TEXT PRIMARY KEY,
-                phash TEXT NOT NULL,
-                screenshot_blob BLOB,
-                cached_at REAL NOT NULL
-            );
-            
-            CREATE INDEX IF NOT EXISTS idx_visual_cache_time ON visual_cache(cached_at);
-            """
-        )
-        conn.commit()
+    if IS_PRODUCTION:
+        return  # Skip table creation in production
+    conn = _get_conn()
+    if conn:
+        try:
+            with _lock, conn:
+                conn.executescript(
+                    """
+                    CREATE TABLE IF NOT EXISTS visual_reference (
+                        brand TEXT NOT NULL,
+                        domain TEXT NOT NULL,
+                        page_type TEXT NOT NULL,
+                        phash TEXT NOT NULL,
+                        screenshot_blob BLOB,
+                        added_at REAL NOT NULL,
+                        PRIMARY KEY (brand, page_type)
+                    );
+                    
+                    CREATE TABLE IF NOT EXISTS visual_cache (
+                        url_hash TEXT PRIMARY KEY,
+                        phash TEXT NOT NULL,
+                        screenshot_blob BLOB,
+                        cached_at REAL NOT NULL
+                    );
+                    
+                    CREATE INDEX IF NOT EXISTS idx_visual_cache_time ON visual_cache(cached_at);
+                    """
+                )
+                conn.commit()
+        finally:
+            conn.close()
 
 
 # Initialize tables on import (only if visual features are available)
 if VISUAL_AVAILABLE:
-    _init_visual_tables()
+    try:
+        _init_visual_tables()
+    except Exception as e:
+        logger.warning(f"Could not initialize visual tables: {e}")
 
 
 def is_available():
@@ -169,9 +184,16 @@ def _compute_phash(screenshot_bytes: bytes) -> Optional[str]:
 
 def _get_cached_screenshot(url: str) -> Optional[Tuple[str, bytes]]:
     """Get cached screenshot phash and data if available."""
+    if IS_PRODUCTION:
+        return None  # Skip caching in production
+    
     url_hash = hashlib.sha256(url.encode()).hexdigest()
     
-    with _get_conn() as conn:
+    conn = _get_conn()
+    if not conn:
+        return None
+    
+    try:
         row = conn.execute(
             "SELECT phash, screenshot_blob, cached_at FROM visual_cache WHERE url_hash = ?",
             (url_hash,),
@@ -181,33 +203,52 @@ def _get_cached_screenshot(url: str) -> Optional[Tuple[str, bytes]]:
             return row["phash"], row["screenshot_blob"]
         
         return None
+    finally:
+        conn.close()
 
 
 def _cache_screenshot(url: str, phash: str, screenshot_bytes: bytes):
     """Cache screenshot and phash for 24 hours."""
+    if IS_PRODUCTION:
+        return  # Skip caching in production
+    
     url_hash = hashlib.sha256(url.encode()).hexdigest()
     
-    with _lock, _get_conn() as conn:
-        conn.execute(
-            """INSERT INTO visual_cache (url_hash, phash, screenshot_blob, cached_at)
-               VALUES (?, ?, ?, ?)
-               ON CONFLICT(url_hash) 
-               DO UPDATE SET phash=excluded.phash, screenshot_blob=excluded.screenshot_blob, cached_at=excluded.cached_at""",
-            (url_hash, phash, screenshot_bytes, time.time()),
-        )
-        
-        # Cleanup old cache entries (older than 48 hours)
-        conn.execute(
-            "DELETE FROM visual_cache WHERE cached_at < ?",
-            (time.time() - SCREENSHOT_CACHE_TTL * 2,),
-        )
-        
-        conn.commit()
+    conn = _get_conn()
+    if not conn:
+        return
+    
+    try:
+        with _lock, conn:
+            conn.execute(
+                """INSERT INTO visual_cache (url_hash, phash, screenshot_blob, cached_at)
+                   VALUES (?, ?, ?, ?)
+                   ON CONFLICT(url_hash) 
+                   DO UPDATE SET phash=excluded.phash, screenshot_blob=excluded.screenshot_blob, cached_at=excluded.cached_at""",
+                (url_hash, phash, screenshot_bytes, time.time()),
+            )
+            
+            # Cleanup old cache entries (older than 48 hours)
+            conn.execute(
+                "DELETE FROM visual_cache WHERE cached_at < ?",
+                (time.time() - SCREENSHOT_CACHE_TTL * 2,),
+            )
+            
+            conn.commit()
+    finally:
+        conn.close()
 
 
 def get_reference_hashes():
     """Get all reference brand hashes from database."""
-    with _get_conn() as conn:
+    if IS_PRODUCTION:
+        return []  # No references in production yet
+    
+    conn = _get_conn()
+    if not conn:
+        return []
+    
+    try:
         rows = conn.execute(
             "SELECT brand, domain, page_type, phash FROM visual_reference"
         ).fetchall()
@@ -218,6 +259,8 @@ def get_reference_hashes():
             "page_type": row["page_type"],
             "phash": row["phash"],
         } for row in rows]
+    finally:
+        conn.close()
 
 
 def add_reference_screenshot(brand: str, domain: str, page_type: str, screenshot_bytes: bytes):
@@ -234,23 +277,33 @@ def add_reference_screenshot(brand: str, domain: str, page_type: str, screenshot
         logger.warning("Visual similarity features not available")
         return
     
+    if IS_PRODUCTION:
+        logger.warning("Cannot add references in production")
+        return
+    
     phash = _compute_phash(screenshot_bytes)
     if not phash:
         logger.error("Failed to compute phash for reference screenshot")
         return
     
-    with _lock, _get_conn() as conn:
-        conn.execute(
-            """INSERT INTO visual_reference (brand, domain, page_type, phash, screenshot_blob, added_at)
-               VALUES (?, ?, ?, ?, ?, ?)
-               ON CONFLICT(brand, page_type)
-               DO UPDATE SET domain=excluded.domain, phash=excluded.phash, 
-                            screenshot_blob=excluded.screenshot_blob, added_at=excluded.added_at""",
-            (brand, domain, page_type, phash, screenshot_bytes, time.time()),
-        )
-        conn.commit()
+    conn = _get_conn()
+    if not conn:
+        return
     
-    logger.info("Added reference screenshot for %s (%s)", brand, page_type)
+    try:
+        with _lock, conn:
+            conn.execute(
+                """INSERT INTO visual_reference (brand, domain, page_type, phash, screenshot_blob, added_at)
+                   VALUES (?, ?, ?, ?, ?, ?)
+                   ON CONFLICT(brand, page_type)
+                   DO UPDATE SET domain=excluded.domain, phash=excluded.phash, 
+                                screenshot_blob=excluded.screenshot_blob, added_at=excluded.added_at""",
+                (brand, domain, page_type, phash, screenshot_bytes, time.time()),
+            )
+            conn.commit()
+        logger.info("Added reference screenshot for %s (%s)", brand, page_type)
+    finally:
+        conn.close()
 
 
 def check_visual_similarity(url: str, actual_domain: str) -> Optional[dict]:
