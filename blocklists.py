@@ -22,10 +22,14 @@ import requests
 import logging
 import threading
 import time
+import os
 
 import database
 
 logger = logging.getLogger("phishinghunter.blocklists")
+
+# Check if running in production environment (Render.com)
+IS_PRODUCTION = os.getenv("RENDER") is not None
 
 OPENPHISH_URL = "https://openphish.com/feed.txt"
 URLHAUS_URL = "https://urlhaus.abuse.ch/downloads/text_recent/"
@@ -44,6 +48,11 @@ def _fetch_lines(url):
 
 
 def refresh_blocklists():
+    # Skip SQLite blocklist operations in production (using MongoDB instead)
+    if IS_PRODUCTION:
+        logger.info("Skipping blocklist refresh in production (MongoDB backend)")
+        return
+    
     openphish_urls = _fetch_lines(OPENPHISH_URL)
     urlhaus_urls = _fetch_lines(URLHAUS_URL)
 
@@ -61,6 +70,11 @@ def refresh_blocklists():
 def start_background_refresh():
     """Fire-and-forget: initial fetch, then repeat on a timer thread.
     Safe to call once at app startup. Never blocks the caller."""
+    
+    # Skip background refresh in production (MongoDB uses manual blocklist management)
+    if IS_PRODUCTION:
+        logger.info("Blocklist background refresh disabled in production")
+        return
 
     def loop():
         while True:
